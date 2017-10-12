@@ -209,16 +209,12 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
         paymentRequest.requiredBillingAddressFields = PKAddressFieldNone;
         paymentRequest.shippingMethods = nil;
         paymentRequest.requiredShippingAddressFields = PKAddressFieldNone;
-        paymentRequest.paymentSummaryItems = @[
-                                               [PKPaymentSummaryItem summaryItemWithLabel:@"SOME ITEM" amount:[NSDecimalNumber decimalNumberWithString:@"10"]],
-                                               [PKPaymentSummaryItem summaryItemWithLabel:@"BRAINTREE" amount:[NSDecimalNumber decimalNumberWithString:@"10"]]
-                                               ];
-        
+        paymentRequest.paymentSummaryItems = [self getPaymentSummaryItemsFromDetails:options];
         paymentRequest.merchantIdentifier = options[@"merchantIdentifier"];;
         paymentRequest.supportedNetworks = @[PKPaymentNetworkVisa, PKPaymentNetworkMasterCard, PKPaymentNetworkAmex, PKPaymentNetworkDiscover];
         paymentRequest.merchantCapabilities = PKMerchantCapability3DS;
-        paymentRequest.currencyCode = @"USD";
-        paymentRequest.countryCode = @"US";
+        paymentRequest.currencyCode = options[@"currencyCode"];
+        paymentRequest.countryCode = options[@"countryCode"];
         if ([paymentRequest respondsToSelector:@selector(setShippingType:)]) {
             paymentRequest.shippingType = PKShippingTypeDelivery;
         }
@@ -326,6 +322,37 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
 - (void)paymentAuthorizationViewControllerWillAuthorizePayment:(PKPaymentAuthorizationViewController *)controller {
     // Move along. Nothing to see here.
 }
+
+// Helper function to convert our details to PKPaymentSummaryItems
+- (NSArray<PKPaymentSummaryItem *> *_Nonnull)getPaymentSummaryItemsFromDetails:(NSDictionary *_Nonnull)details
+{
+    // Setup `paymentSummaryItems` array
+    NSMutableArray <PKPaymentSummaryItem *> * paymentSummaryItems = [NSMutableArray array];
+    
+    // Add `displayItems` to `paymentSummaryItems`
+    NSArray *displayItems = details[@"displayItems"];
+    if (displayItems.count > 0) {
+        for (NSDictionary *displayItem in displayItems) {
+            [paymentSummaryItems addObject: [self convertDisplayItemToPaymentSummaryItem:displayItem]];
+        }
+    }
+    
+    // Add total to `paymentSummaryItems`
+    NSDictionary *total = details[@"total"];
+    [paymentSummaryItems addObject: [self convertDisplayItemToPaymentSummaryItem:total]];
+    
+    return paymentSummaryItems;
+}
+
+- (PKPaymentSummaryItem *_Nonnull)convertDisplayItemToPaymentSummaryItem:(NSDictionary *_Nonnull)displayItem;
+{
+    NSDecimalNumber *decimalNumberAmount = [NSDecimalNumber decimalNumberWithString:displayItem[@"amount"]];
+    PKPaymentSummaryItem *paymentSummaryItem = [PKPaymentSummaryItem summaryItemWithLabel:displayItem[@"label"] amount:decimalNumberAmount];
+    
+    return paymentSummaryItem;
+}
+
+
 
 
 @end
