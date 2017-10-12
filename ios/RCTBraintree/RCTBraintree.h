@@ -12,17 +12,25 @@
 
 #import "BraintreeCore.h"
 #import "BraintreePayPal.h"
+#import "BraintreeApplePay.h"
 #import "BraintreeCard.h"
 #import "BraintreeUI.h"
 #import "BTDataCollector.h"
 #import "PPDataCollector.h"
 
-@interface RCTBraintree : UIViewController <RCTBridgeModule, BTDropInViewControllerDelegate, BTViewControllerPresentingDelegate>
+@import PassKit;
+
+@interface RCTBraintree : UIViewController <RCTBridgeModule, BTDropInViewControllerDelegate, BTViewControllerPresentingDelegate, PKPaymentAuthorizationViewControllerDelegate>
 
 @property (nonatomic, strong) BTAPIClient *braintreeClient;
 @property (nonatomic, strong) UIViewController *reactRoot;
 @property (nonatomic, strong) BTDataCollector *dataCollector;
 
+// ApplePay
+@property (nonatomic, strong) PKPaymentRequest *paymentRequest;
+@property (nonatomic, strong) NSString *applePayNonce;
+
+// React Native integration
 @property (nonatomic, strong) RCTResponseSenderBlock callback;
 
 + (instancetype)sharedInstance;

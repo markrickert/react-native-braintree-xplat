@@ -67,6 +67,14 @@ var Braintree = {
       });
     });
   },
+
+  showApplePayViewController(options = {}) {
+    return new Promise(function(resolve, reject) {
+      RCTBraintree.showApplePayViewController(options, function(err, nonce) {
+        nonce != null ? resolve(nonce) : reject(err);
+      });
+    });
+  },
 };
 
 module.exports = Braintree;
