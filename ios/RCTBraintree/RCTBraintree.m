@@ -3,7 +3,9 @@
 //  RCTBraintree
 //
 //  Created by Rickard Ekman on 18/06/16.
+//  Modified by Mark Rickert to add ApplePay support on 12/10/17.
 //  Copyright © 2016 Rickard Ekman. All rights reserved.
+//  Copyright © 2017 Mark Rickert. All rights reserved.
 //
 
 #import "RCTBraintree.h"
@@ -64,7 +66,7 @@ RCT_EXPORT_METHOD(showPaymentViewController:(NSDictionary *)options callback:(RC
         BTDropInViewController *dropInViewController = [[BTDropInViewController alloc] initWithAPIClient:self.braintreeClient];
         dropInViewController.delegate = self;
 
-        NSLog(@"%@", options);
+        // NSLog(@"%@", options);
 
         UIColor *tintColor = options[@"tintColor"];
         UIColor *bgColor = options[@"bgColor"];
@@ -155,7 +157,7 @@ RCT_EXPORT_METHOD(getDeviceData:(NSDictionary *)options callback:(RCTResponseSen
 {
     dispatch_async(dispatch_get_main_queue(), ^{
 
-        NSLog(@"%@", options);
+        // NSLog(@"%@", options);
 
         NSError *error = nil;
         NSString *deviceData = nil;
@@ -295,7 +297,6 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
                        didAuthorizePayment:(PKPayment *)payment
                                 completion:(void (^)(PKPaymentAuthorizationStatus status))completion
 {
-    NSLog(@"paymentAuthorizationViewController:didAuthorizePayment");
     BTApplePayClient *applePayClient = [[BTApplePayClient alloc] initWithAPIClient:self.braintreeClient];
     [applePayClient tokenizeApplePayPayment:payment completion:^(BTApplePayCardNonce * _Nullable tokenizedApplePayPayment, NSError * _Nullable error) {
         if (error) {
@@ -351,8 +352,5 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
     
     return paymentSummaryItem;
 }
-
-
-
 
 @end
