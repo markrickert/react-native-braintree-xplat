@@ -337,7 +337,13 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
             [paymentSummaryItems addObject: [self convertDisplayItemToPaymentSummaryItem:displayItem]];
         }
     }
-    
+
+    // Add shipping to `paymentSummaryItems`
+    if([details objectForKey:@"shipping"]) {
+        NSDictionary *shipping = details[@"shipping"];
+        [paymentSummaryItems addObject: [self convertDisplayItemToPaymentSummaryItem:shipping]];
+    }
+
     // Add total to `paymentSummaryItems`
     NSDictionary *total = details[@"total"];
     [paymentSummaryItems addObject: [self convertDisplayItemToPaymentSummaryItem:total]];
@@ -347,6 +353,8 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
 
 - (PKPaymentSummaryItem *_Nonnull)convertDisplayItemToPaymentSummaryItem:(NSDictionary *_Nonnull)displayItem;
 {
+//    NSLog(@"Creating new payment item:");
+//    NSLog(@"%@", displayItem);
     NSDecimalNumber *decimalNumberAmount = [NSDecimalNumber decimalNumberWithString:displayItem[@"amount"]];
     PKPaymentSummaryItem *paymentSummaryItem = [PKPaymentSummaryItem summaryItemWithLabel:displayItem[@"label"] amount:decimalNumberAmount];
     
