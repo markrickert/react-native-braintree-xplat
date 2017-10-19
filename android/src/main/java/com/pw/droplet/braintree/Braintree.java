@@ -29,6 +29,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.Arguments;
 
 public class Braintree extends ReactContextBaseJavaModule implements ActivityEventListener {
   private static final int PAYMENT_REQUEST = 1706816330;
@@ -72,7 +74,7 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
       this.mBraintreeFragment.addListener(new PaymentMethodNonceCreatedListener() {
         @Override
         public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
-          nonceCallback(paymentMethodNonce.getNonce());
+          nonceCallback(paymentMethodNonce);
         }
       });
       this.mBraintreeFragment.addListener(new BraintreeErrorListener() {
@@ -134,8 +136,17 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
     Card.tokenize(this.mBraintreeFragment, cardBuilder);
   }
 
-  public void nonceCallback(String nonce) {
-    this.successCallback.invoke(nonce);
+  public void nonceCallback(PaymentMethodNonce cardNonceObj) {
+    String cardNonce = cardNonceObj.getNonce();
+    String cardType = cardNonceObj.getTypeLabel();
+    String cardDesc = cardNonceObj.getDescription();
+
+    WritableMap returnMap = Arguments.createMap();    
+    returnMap.putString("nonce", cardNonce);
+    returnMap.putString("type", cardType);
+    returnMap.putString("localizedDescription", cardDesc);
+
+    this.successCallback.invoke(returnMap);
   }
 
   public void nonceErrorCallback(String error) {
@@ -197,7 +208,7 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
           PaymentMethodNonce paymentMethodNonce = data.getParcelableExtra(
             BraintreePaymentActivity.EXTRA_PAYMENT_METHOD_NONCE
           );
-          this.successCallback.invoke(paymentMethodNonce.getNonce());
+          nonceCallback(paymentMethodNonce);
           break;
         case BraintreePaymentActivity.BRAINTREE_RESULT_DEVELOPER_ERROR:
         case BraintreePaymentActivity.BRAINTREE_RESULT_SERVER_ERROR:
