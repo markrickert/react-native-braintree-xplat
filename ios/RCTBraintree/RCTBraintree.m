@@ -81,6 +81,7 @@ RCT_EXPORT_METHOD(showPaymentViewController:(NSDictionary *)options callback:(RC
         if (bgColor) dropInViewController.view.backgroundColor = [RCTConvert UIColor:bgColor];
 
         dropInViewController.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(userDidCancelPayment)];
+        if (title) [dropInViewController.navigationItem setTitle:title];
 
         self.callback = callback;
 
@@ -93,12 +94,11 @@ RCT_EXPORT_METHOD(showPaymentViewController:(NSDictionary *)options callback:(RC
             BTPaymentRequest *paymentRequest = [[BTPaymentRequest alloc] init];
             paymentRequest.callToActionText = options[@"callToActionText"];
 
+            if (description) paymentRequest.summaryDescription = description;
+            if (amount) paymentRequest.displayAmount = amount;
+
             dropInViewController.paymentRequest = paymentRequest;
         }
-
-        if (title) [dropInViewController.paymentRequest setSummaryTitle:title];
-        if (description) [dropInViewController.paymentRequest setSummaryDescription:description];
-        if (amount) [dropInViewController.paymentRequest setDisplayAmount:amount];
 
         [self.reactRoot presentViewController:navigationController animated:YES completion:nil];
     });
@@ -207,7 +207,7 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
         self.callback = callback;
 
         PKPaymentRequest *paymentRequest = [[PKPaymentRequest alloc] init];
-        
+
         paymentRequest.requiredBillingAddressFields = PKAddressFieldNone;
         paymentRequest.shippingMethods = nil;
         paymentRequest.requiredShippingAddressFields = PKAddressFieldNone;
@@ -220,10 +220,10 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
         if ([paymentRequest respondsToSelector:@selector(setShippingType:)]) {
             paymentRequest.shippingType = PKShippingTypeDelivery;
         }
-        
+
         PKPaymentAuthorizationViewController *viewController = [[PKPaymentAuthorizationViewController alloc] initWithPaymentRequest:paymentRequest];
         viewController.delegate = self;
-        
+
         [self.reactRoot presentViewController:viewController animated:YES completion:nil];
     });
 }
@@ -329,7 +329,7 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
 {
     // Setup `paymentSummaryItems` array
     NSMutableArray <PKPaymentSummaryItem *> * paymentSummaryItems = [NSMutableArray array];
-    
+
     // Add `displayItems` to `paymentSummaryItems`
     NSArray *displayItems = details[@"displayItems"];
     if (displayItems.count > 0) {
@@ -347,17 +347,15 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
     // Add total to `paymentSummaryItems`
     NSDictionary *total = details[@"total"];
     [paymentSummaryItems addObject: [self convertDisplayItemToPaymentSummaryItem:total]];
-    
+
     return paymentSummaryItems;
 }
 
 - (PKPaymentSummaryItem *_Nonnull)convertDisplayItemToPaymentSummaryItem:(NSDictionary *_Nonnull)displayItem;
 {
-//    NSLog(@"Creating new payment item:");
-//    NSLog(@"%@", displayItem);
     NSDecimalNumber *decimalNumberAmount = [NSDecimalNumber decimalNumberWithString:displayItem[@"amount"]];
     PKPaymentSummaryItem *paymentSummaryItem = [PKPaymentSummaryItem summaryItemWithLabel:displayItem[@"label"] amount:decimalNumberAmount];
-    
+
     return paymentSummaryItem;
 }
 
